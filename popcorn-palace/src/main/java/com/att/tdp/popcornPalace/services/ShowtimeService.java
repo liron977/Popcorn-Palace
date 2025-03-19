@@ -2,7 +2,6 @@ package com.att.tdp.popcornPalace.services;
 
 import com.att.tdp.popcornPalace.models.Showtime;
 import com.att.tdp.popcornPalace.repositories.ShowtimeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,8 +12,8 @@ public class ShowtimeService {
 
     private final ShowtimeRepository showtimeRepository;
 
-    public ShowtimeService(ShowtimeRepository showtimeRepository){
-        this.showtimeRepository= showtimeRepository;
+    public ShowtimeService(ShowtimeRepository showtimeRepository) {
+        this.showtimeRepository = showtimeRepository;
     }
 
     public Optional<Showtime> getShowtimeById(Long showtimeId) {
@@ -43,5 +42,14 @@ public class ShowtimeService {
         return !overlappingShowtimes.isEmpty();
     }
 
-
+    public void updateShowtime(Long showtimeId, Showtime showtimeDetails) {
+        showtimeRepository.findById(showtimeId).map(showtime -> {
+            showtime.setMovieId(showtimeDetails.getMovieId());
+            showtime.setPrice(showtimeDetails.getPrice());
+            showtime.setTheater(showtimeDetails.getTheater());
+            showtime.setStartTime(showtimeDetails.getStartTime());
+            showtime.setEndTime(showtimeDetails.getEndTime());
+            return showtimeRepository.save(showtime);
+        }).orElseThrow(() -> new IllegalArgumentException("Showtime not found"));
+    }
 }

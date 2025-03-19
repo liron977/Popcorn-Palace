@@ -20,9 +20,10 @@ public class Showtime {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private double price;
     private Long movieId;
     private String theater;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private double price;
+
 }

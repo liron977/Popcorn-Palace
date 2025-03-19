@@ -5,7 +5,6 @@ import com.att.tdp.popcornPalace.models.Booking;
 import com.att.tdp.popcornPalace.models.Showtime;
 import com.att.tdp.popcornPalace.repositories.BookingRepository;
 import com.att.tdp.popcornPalace.repositories.ShowtimeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -30,14 +29,12 @@ public class BookingService {
             throw new IllegalArgumentException("Showtime not found");
         }
 
-        Showtime showtime = optionalShowtime.get();
-
-        if (bookingRepository.existsByShowtimeAndSeatNumber(showtime, seatNumber)) {
+        if (bookingRepository.existsByShowtimeIdAndSeatNumber(showtimeId, seatNumber)) {
             throw new IllegalStateException("Seat already booked");
         }
 
         Booking booking = Booking.builder()
-                .showtime(showtime)
+                .showtimeId(showtimeId)
                 .seatNumber(seatNumber)
                 .userId(userId)
                 .build();
@@ -45,5 +42,6 @@ public class BookingService {
 
         return booking.getBookingId().toString();
     }
+
 
 }

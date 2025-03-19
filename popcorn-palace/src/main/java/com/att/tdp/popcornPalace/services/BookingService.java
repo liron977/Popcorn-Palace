@@ -42,6 +42,4 @@ public class BookingService {
 
         return booking.getBookingId().toString();
     }
-
-
 }

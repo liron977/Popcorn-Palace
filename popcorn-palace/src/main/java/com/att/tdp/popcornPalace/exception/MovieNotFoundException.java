@@ -5,3 +5,4 @@ public class MovieNotFoundException extends RuntimeException {
         super(message);
     }
 }
+

@@ -3,8 +3,11 @@ package com.att.tdp.popcornPalace.controllers;
 import com.att.tdp.popcornPalace.exception.MovieNotFoundException;
 import com.att.tdp.popcornPalace.models.Movie;
 import com.att.tdp.popcornPalace.services.MovieService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +27,15 @@ public class MovieController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addMovie(@RequestBody Movie movie) {
+    public ResponseEntity<?> addMovie(@Valid @RequestBody Movie movie, BindingResult result) {
+        if (result.hasErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            for (FieldError error : result.getFieldErrors()) {
+                errorMessages.append(error.getDefaultMessage()).append("; ");
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessages.toString());
+        }
+
         try {
             // Try adding the movie
             Movie addedMovie = movieService.addMovie(movie);
@@ -39,7 +50,15 @@ public class MovieController {
     }
 
     @PostMapping("/update/{movieTitle}")
-    public ResponseEntity<?> updateMovie(@PathVariable String movieTitle, @RequestBody Movie movieDetails) {
+    public ResponseEntity<?> updateMovie(@PathVariable String movieTitle, @Valid @RequestBody Movie movieDetails, BindingResult result) {
+        if (result.hasErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            for (FieldError error : result.getFieldErrors()) {
+                errorMessages.append(error.getDefaultMessage()).append("; ");
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessages.toString());
+        }
+
         try {
             Movie updatedMovie = movieService.updateMovie(movieTitle, movieDetails);
             return ResponseEntity.ok(updatedMovie);
@@ -61,5 +80,4 @@ public class MovieController {
             return ResponseEntity.notFound().build();
         }
     }
-
 }

@@ -1,8 +1,13 @@
 package com.att.tdp.popcornPalace.controllers;
 
+import com.att.tdp.popcornPalace.exception.ShowtimeNotFoundException;
 import com.att.tdp.popcornPalace.models.Showtime;
 import com.att.tdp.popcornPalace.services.ShowtimeService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,15 +20,29 @@ public class ShowtimeController {
         this.showtimeService = showtimeService;
     }
 
+    // Get Showtime by ID
     @GetMapping("/{showtimeId}")
-    public ResponseEntity<Showtime> getShowtimeById(@PathVariable Long showtimeId) {
-        return showtimeService.getShowtimeById(showtimeId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getShowtimeById(@PathVariable Long showtimeId) {
+        try {
+            Showtime showtime = showtimeService.getShowtimeById(showtimeId);
+            return ResponseEntity.ok(showtime);  // Returns 200 OK with the showtime
+        } catch (ShowtimeNotFoundException e) {
+            // Returns 404 Not Found if ShowtimeNotFoundException is thrown
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body( e.getMessage());
+        }
     }
-
+    // Add Showtime with Validation
     @PostMapping
-    public ResponseEntity<?> addShowtime(@RequestBody Showtime showtime) {
+    public ResponseEntity<?> addShowtime(@Valid @RequestBody Showtime showtime,BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errorMessages.append(error.getDefaultMessage()).append("; ");
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessages.toString());
+        }
+
+
         try {
             Showtime addedShowtime = showtimeService.addShowtime(showtime);
             return ResponseEntity.ok(addedShowtime);
@@ -32,8 +51,18 @@ public class ShowtimeController {
         }
     }
 
+    // Update Showtime with Validation
     @PostMapping("/update/{showtimeId}")
-    public ResponseEntity<Void> updateShowtime(@PathVariable Long showtimeId, @RequestBody Showtime showtimeDetails) {
+    public ResponseEntity<?> updateShowtime(@PathVariable Long showtimeId, @Valid @RequestBody Showtime showtimeDetails ,BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errorMessages.append(error.getDefaultMessage()).append("; ");
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessages.toString());
+        }
+
+
         try {
             showtimeService.updateShowtime(showtimeId, showtimeDetails);
             return ResponseEntity.ok().build();  // Returns 200 No Content
@@ -42,6 +71,7 @@ public class ShowtimeController {
         }
     }
 
+    // Delete Showtime
     @DeleteMapping("/{showtimeId}")
     public ResponseEntity<Void> deleteShowtime(@PathVariable Long showtimeId) {
         if (showtimeService.deleteShowtime(showtimeId)) {

@@ -1,13 +1,15 @@
 package com.att.tdp.popcornPalace.services;
 
 
+import com.att.tdp.popcornPalace.exception.BusinessRuleViolationException;
+import com.att.tdp.popcornPalace.exception.ResourceNotFoundException;
 import com.att.tdp.popcornPalace.models.Booking;
 import com.att.tdp.popcornPalace.models.Showtime;
 import com.att.tdp.popcornPalace.repositories.BookingRepository;
 import com.att.tdp.popcornPalace.repositories.ShowtimeRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -23,14 +25,14 @@ public class BookingService {
         this.showtimeRepository = showtimeRepository;
     }
 
+    @Transactional
     public String bookTicket(Long showtimeId, int seatNumber, UUID userId) {
-        Optional<Showtime> optionalShowtime = showtimeRepository.findById(showtimeId);
-        if (optionalShowtime.isEmpty()) {
-            throw new IllegalArgumentException("Showtime not found");
-        }
+       showtimeRepository.findById(showtimeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Showtime", showtimeId.toString()));
+
 
         if (bookingRepository.existsByShowtimeIdAndSeatNumber(showtimeId, seatNumber)) {
-            throw new IllegalStateException("Seat already booked");
+            throw new BusinessRuleViolationException("Seat " + seatNumber + " is already booked for this showtime");
         }
 
         Booking booking = Booking.builder()

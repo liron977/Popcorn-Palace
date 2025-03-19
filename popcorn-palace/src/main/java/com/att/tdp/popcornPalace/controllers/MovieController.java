@@ -1,16 +1,13 @@
 package com.att.tdp.popcornPalace.controllers;
 
-import com.att.tdp.popcornPalace.exception.MovieNotFoundException;
 import com.att.tdp.popcornPalace.models.Movie;
 import com.att.tdp.popcornPalace.services.MovieService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 @RestController
 @RequestMapping("/movies")
 public class MovieController {
@@ -26,58 +23,24 @@ public class MovieController {
         return movieService.getAllMovies();
     }
 
-    @PostMapping
-    public ResponseEntity<?> addMovie(@Valid @RequestBody Movie movie, BindingResult result) {
-        if (result.hasErrors()) {
-            StringBuilder errorMessages = new StringBuilder();
-            for (FieldError error : result.getFieldErrors()) {
-                errorMessages.append(error.getDefaultMessage()).append("; ");
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessages.toString());
-        }
+@PostMapping
+public ResponseEntity<Movie> addMovie(@Valid @RequestBody Movie movie) {
+    Movie addedMovie = movieService.addMovie(movie);
+    return ResponseEntity.ok(addedMovie);
+}
+      @PostMapping("/update/{movieTitle}")
+         public ResponseEntity<Movie> updateMovie(
+                @PathVariable String movieTitle,
+                 @Valid @RequestBody Movie movieDetails) {
 
-        try {
-            // Try adding the movie
-            Movie addedMovie = movieService.addMovie(movie);
-            return ResponseEntity.ok(addedMovie);  // Return the added movie details if successful
-        } catch (IllegalArgumentException e) {
-            // Handle the case where the movie already exists
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
-        } catch (Exception e) {
-            // Catch any other unexpected exceptions
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
-        }
-    }
 
-    @PostMapping("/update/{movieTitle}")
-    public ResponseEntity<?> updateMovie(@PathVariable String movieTitle, @Valid @RequestBody Movie movieDetails, BindingResult result) {
-        if (result.hasErrors()) {
-            StringBuilder errorMessages = new StringBuilder();
-            for (FieldError error : result.getFieldErrors()) {
-                errorMessages.append(error.getDefaultMessage()).append("; ");
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessages.toString());
-        }
-
-        try {
             Movie updatedMovie = movieService.updateMovie(movieTitle, movieDetails);
-            return ResponseEntity.ok(updatedMovie);
-        } catch (MovieNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Movie not found: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage()); // Handle duplicate title error
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
-        }
-    }
+             return ResponseEntity.ok(updatedMovie);
+         }
 
     @DeleteMapping("/{movieTitle}")
     public ResponseEntity<Void> deleteMovie(@PathVariable String movieTitle) {
-        try {
-            movieService.deleteMovie(movieTitle);
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+        movieService.deleteMovie(movieTitle);
+        return ResponseEntity.noContent().build();
     }
 }

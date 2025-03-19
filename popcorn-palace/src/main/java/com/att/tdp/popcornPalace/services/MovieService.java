@@ -1,6 +1,7 @@
 package com.att.tdp.popcornPalace.services;
 
-import com.att.tdp.popcornPalace.exception.MovieNotFoundException;
+import com.att.tdp.popcornPalace.exception.DuplicateResourceException;
+import com.att.tdp.popcornPalace.exception.ResourceNotFoundException;
 import com.att.tdp.popcornPalace.models.Movie;
 import com.att.tdp.popcornPalace.repositories.MovieRepository;
 import org.springframework.stereotype.Service;
@@ -23,14 +24,14 @@ public class MovieService {
     public Movie addMovie(Movie movie) {
         // Check if the movie with the same title already exists
         if (movieRepository.existsByTitle(movie.getTitle())) {
-            throw new IllegalArgumentException("Movie with title '" + movie.getTitle() + "' already exists.");
+            throw new DuplicateResourceException("Movie", movie.getTitle());
         }
         return movieRepository.save(movie);
     }
 
     public Movie updateMovie(String movieTitle, Movie movieDetails) {
         if (!movieTitle.equals(movieDetails.getTitle()) && movieRepository.existsByTitle(movieDetails.getTitle())) {
-            throw new IllegalArgumentException("Movie with title '" + movieDetails.getTitle() + "' already exists.");
+            throw new DuplicateResourceException("Movie", movieDetails.getTitle());
         }
 
         return movieRepository.findByTitle(movieTitle).map(movie -> {
@@ -40,12 +41,12 @@ public class MovieService {
             movie.setRating(movieDetails.getRating());
             movie.setReleaseYear(movieDetails.getReleaseYear());
             return movieRepository.save(movie);
-        }).orElseThrow(() -> new MovieNotFoundException("Movie with title " + movieTitle + " not found"));
+        }).orElseThrow(() -> new ResourceNotFoundException("Movie", movieTitle));
     }
 
     public void deleteMovie(String movieTitle) {
         Movie movie = movieRepository.findByTitle(movieTitle)
-                .orElseThrow(() -> new IllegalArgumentException("Movie not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", movieTitle));
         movieRepository.delete(movie);
     }
 }

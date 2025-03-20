@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(BaseApplicationException.class)
+    @ExceptionHandler({BaseApplicationException.class,DuplicateResourceException.class,BusinessRuleViolationException.class,ResourceNotFoundException.class})
     public ResponseEntity<ExceptionResponse> handleBaseApplicationException(BaseApplicationException ex) {
         logger.error("Application exception occurred: {}", ex.getMessage(), ex);
 
@@ -33,6 +33,8 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, ex.getHttpStatus());
     }
+
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionResponse> handleGenericException(Exception ex) {

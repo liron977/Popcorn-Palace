@@ -1,4 +1,4 @@
-package com.att.popcornPalace;
+package com.att.popcornPalace.repositories;
 
 
 import com.att.tdp.popcornPalace.PopcornPalaceApplication;
@@ -7,10 +7,9 @@ import com.att.tdp.popcornPalace.repositories.MovieRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +17,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 
+@Transactional
 @ActiveProfiles("test")
 @SpringBootTest(classes = PopcornPalaceApplication.class)
 public class MovieRepositoryTest {

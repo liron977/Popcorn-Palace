@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 @Import(GlobalExceptionHandler.class)
+@Transactional
 public class MovieControllerTest {
 
     private MockMvc mockMvc;
@@ -139,7 +141,6 @@ public class MovieControllerTest {
     @Test
     public void testUpdateMovie_NotFound() throws Exception {
         String movieTitle = "Nonexistent Movie";
-        Movie movieDetails = new Movie(null, "Updated Movie", "Action", 120, 7.5, 2023);
 
         // Mock the service layer to throw an exception
         when(movieService.updateMovie(eq(movieTitle), any(Movie.class)))

@@ -5,11 +5,13 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Transactional
 class MovieTest {
 
     private final Validator validator;

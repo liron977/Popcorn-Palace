@@ -1,10 +1,11 @@
 package com.att.popcornPalace.services;
 
 
-import com.att.tdp.popcornPalace.exception.DuplicateResourceException;
-import com.att.tdp.popcornPalace.exception.ResourceNotFoundException;
+import com.att.tdp.popcornPalace.exception.*;
 import com.att.tdp.popcornPalace.models.Movie;
+import com.att.tdp.popcornPalace.models.Showtime;
 import com.att.tdp.popcornPalace.repositories.MovieRepository;
+import com.att.tdp.popcornPalace.repositories.ShowtimeRepository;
 import com.att.tdp.popcornPalace.services.MovieService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +38,9 @@ public class MovieServiceTest {
 
     @Mock
     private MovieRepository movieRepository;
+
+    @Mock
+    private ShowtimeRepository showtimeRepository;
 
     @InjectMocks
     private MovieService movieService;
@@ -166,14 +171,43 @@ public class MovieServiceTest {
     }
 
     @Test
-    public void testDeleteMovie_Success() {
-        // Test if the movie is deleted successfully
+    public void testDeleteMovie_WithShowtimes_ThrowsConflictException() {
+        // Create a movie object
+        Movie movie = new Movie();
+        movie.setId(1L);
+        movie.setTitle("Inception");
+
+        // Create associated showtimes for the movie
+        Showtime showtime1 = new Showtime();
+        showtime1.setId(20L);
+        showtime1.setTheater("Sample Theater 7");
+        showtime1.setStartTime(LocalDateTime.parse("2023-02-14T11:47:46.125405"));
+        showtime1.setEndTime(LocalDateTime.parse("2025-02-14T14:47:46.125405"));
+
+        Showtime showtime2 = new Showtime();
+        showtime2.setId(21L);
+        showtime2.setTheater("Sample Theater 8");
+        showtime2.setStartTime(LocalDateTime.parse("2023-02-14T11:47:46.125405"));
+        showtime2.setEndTime(LocalDateTime.parse("2025-02-14T14:47:46.125405"));
+
+        // Mock the repository methods
         when(movieRepository.findByTitle("Inception")).thenReturn(Optional.of(movie));
+        when(showtimeRepository.findByMovieId(movie.getId())).thenReturn(List.of(showtime1, showtime2)); // Return the associated showtimes
 
-        movieService.deleteMovie("Inception");
+        // Call the method under test and assert that the exception is thrown
+        ConflictException exception = assertThrows(ConflictException.class, () -> movieService.deleteMovie("Inception"));
 
+        // Verify the error message contains the expected showtimes details
+        String expectedMessage = "Movie has associated showtimes. Please delete the showtimes before deleting the movie. Associated showtimes:\n" +
+                "Showtime ID: 20, Theater: Sample Theater 7, Start Time: 2023-02-14T11:47:46.125405, End Time: 2025-02-14T14:47:46.125405\n" +
+                "Showtime ID: 21, Theater: Sample Theater 8, Start Time: 2023-02-14T11:47:46.125405, End Time: 2025-02-14T14:47:46.125405\n";
+
+        assertEquals(expectedMessage, exception.getMessage());
+
+        // Verify that the methods are called the expected number of times
         verify(movieRepository, times(1)).findByTitle("Inception");
-        verify(movieRepository, times(1)).delete(movie);
+        verify(showtimeRepository, times(1)).findByMovieId(movie.getId());
+        verify(movieRepository, never()).delete(movie); // Ensure movie is not deleted
     }
 
     @Test

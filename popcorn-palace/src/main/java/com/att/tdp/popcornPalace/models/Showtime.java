@@ -1,9 +1,6 @@
 package com.att.tdp.popcornPalace.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -25,11 +22,13 @@ public class Showtime {
     private Long id;
 
     @Min(value = 0, message = "Price must be non-negative")
+    // ToDo: why not float?
     private double price;
 
     @NotNull(message = "Movie ID is required")
-    @Min(value = 1, message = "Movie ID must be a positive number")
-    private Long movieId;
+    @ManyToOne
+    @JoinColumn(name = "movie_id", referencedColumnName = "id",nullable = false) // Foreign key to Movie table
+    private Movie movie; // Mapping to Movie entity Movie table
 
     @NotBlank(message = "Theater is required")
     private String theater;

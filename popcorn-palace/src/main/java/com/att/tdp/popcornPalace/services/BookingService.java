@@ -10,6 +10,7 @@ import com.att.tdp.popcornPalace.repositories.ShowtimeRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -27,11 +28,16 @@ public class BookingService {
 
     @Transactional
     public String bookTicket(Long showtimeId, int seatNumber, UUID userId) {
-       showtimeRepository.findById(showtimeId)
+        Showtime showtime = showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Showtime", showtimeId.toString()));
 
+        // Validate that the showtime is in the future
+        if (showtime.getEndTime().isBefore(LocalDateTime.now())) {
+            throw new BusinessRuleViolationException("Cannot book a ticket for a past showtime.");
+        }
 
         if (bookingRepository.existsByShowtimeIdAndSeatNumber(showtimeId, seatNumber)) {
+            // ToDo: consider adding a class per error, as BusinessRuleViolationException can be the parent exception
             throw new BusinessRuleViolationException("Seat " + seatNumber + " is already booked for this showtime");
         }
 

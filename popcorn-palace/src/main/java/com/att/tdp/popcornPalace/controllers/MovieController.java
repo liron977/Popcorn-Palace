@@ -12,31 +12,35 @@ import java.util.List;
 @RequestMapping("/movies")
 public class MovieController {
 
+    // ToDo: change it all ResponseEntity and response wrapper
+
     private final MovieService movieService;
 
     public MovieController(MovieService movieService) {
         this.movieService = movieService;
     }
 
+    // ToDo: in your notes - write that from what you know REST shouldn't have it
     @GetMapping("/all")
     public List<Movie> getAllMovies() {
         return movieService.getAllMovies();
     }
 
-@PostMapping
-public ResponseEntity<Movie> addMovie(@Valid @RequestBody Movie movie) {
-    Movie addedMovie = movieService.addMovie(movie);
-    return ResponseEntity.ok(addedMovie);
-}
-      @PostMapping("/update/{movieTitle}")
-         public ResponseEntity<Movie> updateMovie(
-                @PathVariable String movieTitle,
-                 @Valid @RequestBody Movie movieDetails) {
+    @PostMapping
+    public ResponseEntity<Movie> addMovie(@Valid @RequestBody Movie movie) {
+        Movie addedMovie = movieService.addMovie(movie);
+        return ResponseEntity.ok(addedMovie);
+    }
 
+    @PostMapping("/update/{movieTitle}")
+    public ResponseEntity<Movie> updateMovie(
+            @PathVariable String movieTitle,
+            @Valid @RequestBody Movie movieDetails) {
 
-            Movie updatedMovie = movieService.updateMovie(movieTitle, movieDetails);
-             return ResponseEntity.ok(updatedMovie);
-         }
+        movieService.updateMovie(movieTitle, movieDetails);
+
+        return ResponseEntity.noContent().build();
+    }
 
     @DeleteMapping("/{movieTitle}")
     public ResponseEntity<Void> deleteMovie(@PathVariable String movieTitle) {

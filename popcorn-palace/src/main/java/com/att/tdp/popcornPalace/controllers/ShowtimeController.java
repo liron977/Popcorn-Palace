@@ -1,5 +1,7 @@
 package com.att.tdp.popcornPalace.controllers;
 
+import com.att.tdp.popcornPalace.dto.ShowtimeRequestDto;
+import com.att.tdp.popcornPalace.dto.ShowtimeResponseDto;
 import com.att.tdp.popcornPalace.models.Showtime;
 import com.att.tdp.popcornPalace.services.ShowtimeService;
 import jakarta.validation.Valid;
@@ -19,20 +21,22 @@ public class ShowtimeController {
 
     // Get Showtime by ID
     @GetMapping("/{showtimeId}")
-    public ResponseEntity<Showtime> getShowtimeById(@PathVariable Long showtimeId) {
+    public ResponseEntity<ShowtimeResponseDto> getShowtimeById(@PathVariable Long showtimeId) {
         Showtime showtime = showtimeService.getShowtimeById(showtimeId);
-        return ResponseEntity.ok(showtime);
+        ShowtimeResponseDto responseDto = showtimeService.mapToShowtimeResponseDto(showtime);
+        return ResponseEntity.ok(responseDto);
     }
 
     @PostMapping
-    public ResponseEntity<Showtime> addShowtime(@Valid @RequestBody Showtime showtime) {
+    public ResponseEntity<ShowtimeResponseDto> addShowtime(@Valid @RequestBody ShowtimeRequestDto showtime) {
         Showtime addedShowtime = showtimeService.addShowtime(showtime);
-        return ResponseEntity.status(HttpStatus.CREATED).body(addedShowtime);
+        ShowtimeResponseDto responseDto = showtimeService.mapToShowtimeResponseDto(addedShowtime);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
     @PostMapping("/update/{showtimeId}")
     public ResponseEntity<Void> updateShowtime(
             @PathVariable Long showtimeId,
-            @Valid @RequestBody Showtime showtimeDetails) {
+            @Valid @RequestBody ShowtimeRequestDto showtimeDetails) {
 
         showtimeService.updateShowtime(showtimeId, showtimeDetails);
         return ResponseEntity.ok().build();

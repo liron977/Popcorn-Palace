@@ -15,8 +15,10 @@ import java.util.Map;
 @RequestMapping("/bookings")
 public class BookingController {
 
+
     private final BookingService bookingService;
 
+    // ToDo: verify if that's the best practice when using Spring, not sure it should be in the constructor, instead of autowiring
     public BookingController(BookingService bookingService) {
         this.bookingService = bookingService;
     }

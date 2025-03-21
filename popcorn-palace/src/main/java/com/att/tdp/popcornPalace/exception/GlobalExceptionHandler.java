@@ -17,11 +17,12 @@ import java.util.Map;
 
 
 @ControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler { // ToDo: rename to http response handler
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler({BaseApplicationException.class,DuplicateResourceException.class,BusinessRuleViolationException.class,ResourceNotFoundException.class})
+    // see if you can make it handel only for http response and not other
+    @ExceptionHandler({BaseApplicationException.class,DuplicateResourceException.class,BusinessRuleViolationException.class,ResourceNotFoundException.class,ConflictException.class})
     public ResponseEntity<ExceptionResponse> handleBaseApplicationException(BaseApplicationException ex) {
         logger.error("Application exception occurred: {}", ex.getMessage(), ex);
 

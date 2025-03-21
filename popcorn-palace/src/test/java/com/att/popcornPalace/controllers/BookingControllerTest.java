@@ -1,6 +1,7 @@
 package com.att.popcornPalace.controllers;
 
 import com.att.tdp.popcornPalace.controllers.BookingController;
+import com.att.tdp.popcornPalace.exception.BusinessRuleViolationException;
 import com.att.tdp.popcornPalace.exception.GlobalExceptionHandler;
 import com.att.tdp.popcornPalace.models.Booking;
 import com.att.tdp.popcornPalace.services.BookingService;
@@ -151,6 +152,27 @@ public class BookingControllerTest {
 
         // Verify that the bookingService was not called
         verify(bookingService, times(0)).bookTicket(anyLong(), anyInt(), any(UUID.class));
+    }
+    // Test POST /bookings - Showtime is in the past
+    @Test
+    public void testBookTicket_PastShowtime() throws Exception {
+        when(bookingService.bookTicket(anyLong(), anyInt(), any(UUID.class)))
+                .thenThrow(new BusinessRuleViolationException("Cannot book a ticket for a past showtime."));
+
+        mockMvc.perform(post("/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "showtimeId": 1,
+                                "seatNumber": 5,
+                                "userId": "123e4567-e89b-12d3-a456-426614174000"
+                            }
+                            """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("BUSINESS_RULE_VIOLATION"))
+                .andExpect(jsonPath("$.message").value("Cannot book a ticket for a past showtime."));
+
+        verify(bookingService, times(1)).bookTicket(anyLong(), anyInt(), any(UUID.class));
     }
 
 

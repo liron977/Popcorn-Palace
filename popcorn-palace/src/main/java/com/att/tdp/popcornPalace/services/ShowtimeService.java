@@ -1,7 +1,10 @@
 package com.att.tdp.popcornPalace.services;
 
+import com.att.tdp.popcornPalace.dto.ShowtimeRequestDto;
+import com.att.tdp.popcornPalace.dto.ShowtimeResponseDto;
 import com.att.tdp.popcornPalace.exception.ResourceNotFoundException;
 import com.att.tdp.popcornPalace.exception.BusinessRuleViolationException;
+import com.att.tdp.popcornPalace.models.Movie;
 import com.att.tdp.popcornPalace.models.Showtime;
 import com.att.tdp.popcornPalace.repositories.MovieRepository;
 import com.att.tdp.popcornPalace.repositories.ShowtimeRepository;
@@ -46,6 +49,7 @@ public class ShowtimeService {
      * @throws ResourceNotFoundException If no showtime with the given ID exists
      */
 
+
     public void deleteShowtime(Long showtimeId) {
         // First check if the showtime exists
         showtimeRepository.findById(showtimeId)
@@ -57,13 +61,26 @@ public class ShowtimeService {
     /**
      * Creates a new showtime after validating business rules.
      *
-     * @param showtime The showtime to create
+     * @param request The showtimeDto to create
      * @return The created showtime with its generated ID
      * @throws ResourceNotFoundException If the referenced movie doesn't exist
      * @throws BusinessRuleViolationException If business rules are violated
      */
-    public Showtime addShowtime(Showtime showtime) {
-        validateShowtime(showtime, null);
+    public Showtime addShowtime(ShowtimeRequestDto request) {
+        validateShowtime(request, null);
+
+        Movie movie = movieRepository.findById(request.getMovieId())
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", request.getMovieId().toString()));
+
+        // Convert DTO to Entity
+        Showtime showtime = Showtime.builder()
+                .movie(movie)  // Set Movie object, not just ID
+                .price(request.getPrice())
+                .theater(request.getTheater())
+                .startTime(request.getStartTime())
+                .endTime(request.getEndTime())
+                .build();
+
         return showtimeRepository.save(showtime);
     }
 
@@ -75,18 +92,22 @@ public class ShowtimeService {
      * @throws ResourceNotFoundException If no showtime with the given ID exists or the referenced movie doesn't exist
      * @throws BusinessRuleViolationException If business rules are violated
      */
-    public void updateShowtime(Long showtimeId, Showtime showtimeDetails) {
+    public void updateShowtime(Long showtimeId, ShowtimeRequestDto showtimeDetails) {
         // Verify showtime exists
         Showtime existingShowtime = showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Showtime", showtimeId.toString()));
+
+        // Fetch the Movie object using the movieId from the ShowtimeRequestDto
+        Movie movie = movieRepository.findById(showtimeDetails.getMovieId())
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", showtimeDetails.getMovieId().toString()));
 
         // Validate business rules
         validateShowtime(showtimeDetails, showtimeId);
 
         // Update using builder pattern (requires @Builder on Showtime entity)
         Showtime updatedShowtime = Showtime.builder()
-                .id(existingShowtime.getId())
-                .movieId(showtimeDetails.getMovieId())
+                .id(existingShowtime.getId()) // Keep the existing ID
+                .movie(movie) // Directly set the Movie object
                 .price(showtimeDetails.getPrice())
                 .theater(showtimeDetails.getTheater())
                 .startTime(showtimeDetails.getStartTime())
@@ -109,8 +130,9 @@ public class ShowtimeService {
      * @throws ResourceNotFoundException If the referenced movie doesn't exist
      * @throws BusinessRuleViolationException If any business rule is violated
      */
-    private void validateShowtime(Showtime showtime, Long currentShowtimeId) {
+    private void validateShowtime(ShowtimeRequestDto showtime, Long currentShowtimeId) {
         // Check if the movie exists
+
         movieRepository.findById(showtime.getMovieId())
                 .orElseThrow(() -> new ResourceNotFoundException("Movie", showtime.getMovieId().toString()));
 
@@ -127,7 +149,7 @@ public class ShowtimeService {
      * Validates that the showtime doesn't overlap with any existing showtimes
      * in the same theater, excluding the current showtime (for updates).
      */
-    private void validateNoOverlappingShowtimes(Showtime showtime, Long currentShowtimeId) {
+    private void validateNoOverlappingShowtimes(ShowtimeRequestDto showtime, Long currentShowtimeId) {
         List<Showtime> overlappingShowtimes = showtimeRepository.findOverlappingShowtimes(
                 showtime.getTheater(), showtime.getStartTime(), showtime.getEndTime()
         );
@@ -147,4 +169,16 @@ public class ShowtimeService {
             ));
         }
     }
+
+    public ShowtimeResponseDto mapToShowtimeResponseDto(Showtime showtime) {
+        return new ShowtimeResponseDto(
+                showtime.getId(),
+                showtime.getPrice(),
+                showtime.getMovie().getId(),  // Get movieId
+                showtime.getTheater(),
+                showtime.getStartTime(),
+                showtime.getEndTime()
+        );
+    }
+
 }

@@ -122,20 +122,19 @@ public class MovieControllerTest {
         String movieTitle = "Inception";
         Movie updatedMovie = new Movie(null, "Inception Updated", "Sci-Fi", 150, 8.9, 2011);
 
-        // Mock the service layer
+        // Mock the service layer to return the updated movie (this part isn't needed for the controller test)
         when(movieService.updateMovie(eq(movieTitle), any(Movie.class))).thenReturn(updatedMovie);
 
         // Perform the PUT request and assert the response
         mockMvc.perform(post("/movies/update/{movieTitle}", movieTitle)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Inception Updated\", \"genre\":\"Sci-Fi\", \"duration\":150, \"rating\":8.9, \"releaseYear\":2011}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Inception Updated"))
-                .andExpect(jsonPath("$.genre").value("Sci-Fi"));
+                .andExpect(status().isNoContent()); // Expect 204 No Content status
 
         // Verify that the service was called
         verify(movieService, times(1)).updateMovie(eq(movieTitle), any(Movie.class));
     }
+
 
     // Test for updating a movie that doesn't exist
     @Test

@@ -19,6 +19,7 @@ public class Booking {
 
     @NotNull(message = "Showtime ID is required")
     @Min(value = 1, message = "Showtime ID must be a positive number")
+    // ToDo: add a forging key to showtime
     private Long showtimeId;
 
     @Min(value = 1, message = "Seat number must be a positive integer")

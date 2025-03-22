@@ -7,14 +7,17 @@ import com.att.tdp.popcornPalace.models.Showtime;
 import com.att.tdp.popcornPalace.repositories.MovieRepository;
 import com.att.tdp.popcornPalace.repositories.ShowtimeRepository;
 import com.att.tdp.popcornPalace.services.ShowtimeService;
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +41,7 @@ class ShowtimeServiceTest {
     private Showtime showtime;
     @AfterEach
     public void cleanup() {
-        movieRepository.deleteAll();
+        Mockito.reset(showtimeRepository, movieRepository);
     }
 
     @BeforeEach
@@ -280,6 +283,14 @@ class ShowtimeServiceTest {
         // Act & Assert: Verify that an exception is thrown due to overlapping showtimes
         assertThrows(BusinessRuleViolationException.class, () -> showtimeService.updateShowtime(1L, showtimeRequestDto));
     }
+    @Test
+    void testDeleteShowtime_AlreadyDeleted() {
+        Long showtimeId = 1L;
+        when(showtimeRepository.findById(showtimeId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> showtimeService.deleteShowtime(showtimeId));
+    }
+
 
 
 

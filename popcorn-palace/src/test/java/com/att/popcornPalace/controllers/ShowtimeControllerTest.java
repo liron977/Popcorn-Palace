@@ -91,9 +91,9 @@ public class ShowtimeControllerTest {
         // Perform the GET request and assert the response
         mockMvc.perform(get("/showtimes/{showtimeId}", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(1L)) // Adjusted path to account for 'data'
-                .andExpect(jsonPath("$.data.price").value(12.5))
-                .andExpect(jsonPath("$.data.theater").value("IMAX"));
+                .andExpect(jsonPath("$.id").value(1L)) // Adjusted path to account for 'data'
+                .andExpect(jsonPath("$.price").value(12.5))
+                .andExpect(jsonPath("$.theater").value("IMAX"));
 
         // Verify that the service methods were called
         verify(showtimeService, times(1)).getShowtimeById(1L);
@@ -137,8 +137,8 @@ public class ShowtimeControllerTest {
                         }
                         """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.id").value(1L))  // Adjusted path to $.data.id
-                .andExpect(jsonPath("$.data.price").value(12.5));
+                .andExpect(jsonPath("$.id").value(1L))  // Adjusted path to $.data.id
+                .andExpect(jsonPath("$.price").value(12.5));
 
         verify(showtimeService, times(1)).addShowtime(any(ShowtimeRequestDto.class));
     }
@@ -231,7 +231,7 @@ public class ShowtimeControllerTest {
         doNothing().when(showtimeService).deleteShowtime(1L);
 
         mockMvc.perform(delete("/showtimes/{showtimeId}", 1L))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
         verify(showtimeService, times(1)).deleteShowtime(1L);
     }
@@ -247,4 +247,96 @@ public class ShowtimeControllerTest {
 
         verify(showtimeService, times(1)).deleteShowtime(1L);
     }
+    // Test GET /showtimes/{showtimeId} - Not Found
+    @Test
+    public void testGetShowtimeById_NotFound() throws Exception {
+        // Mock the service method to throw ResourceNotFoundException when showtimeId is not found
+        when(showtimeService.getShowtimeById(1L)).thenThrow(new ResourceNotFoundException("Showtime", "1"));
+
+        // Perform the GET request and expect 404 Not Found
+        mockMvc.perform(get("/showtimes/{showtimeId}", 1L))
+                .andExpect(status().isNotFound()) // Expecting HTTP 404 Not Found response
+                .andExpect(jsonPath("$.errorCode").value("RESOURCE_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("Showtime with identifier 1 not found"));
+
+        // Verify the service method was called
+        verify(showtimeService, times(1)).getShowtimeById(1L);
+    }
+    // Test POST /showtimes/update/{showtimeId} - Invalid Input
+    @Test
+    public void testUpdateShowtime_InvalidData() throws Exception {
+        String invalidShowtimeRequestDtoJson = """
+    {
+        "price": -5,
+        "movieId": 0,
+        "theater": "",
+        "startTime": null,
+        "endTime": null
+    }
+    """;
+
+        // Perform the POST request with invalid data
+        mockMvc.perform(post("/showtimes/update/{showtimeId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidShowtimeRequestDtoJson))
+                .andExpect(status().isBadRequest()) // Expecting HTTP 400 Bad Request
+                .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message", containsString("Price must be non-negative")))
+                .andExpect(jsonPath("$.message", containsString("Movie ID must be a positive number")))
+                .andExpect(jsonPath("$.message", containsString("Theater is required")))
+                .andExpect(jsonPath("$.message", containsString("Start time is required")))
+                .andExpect(jsonPath("$.message", containsString("End time is required")));
+    }
+
+    // Test GET /showtimes/{showtimeId} - Invalid showtimeId
+    @Test
+    public void testGetShowtimeById_InvalidId() throws Exception {
+        // Perform the GET request with an invalid showtimeId (e.g., non-numeric)
+        mockMvc.perform(get("/showtimes/{showtimeId}", "invalidId"))
+                .andExpect(status().isInternalServerError()) // Expecting HTTP 500 Internal Server Error
+                .andExpect(jsonPath("$.errorCode").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message")
+                        .value("Unexpected error occurred: Method parameter 'showtimeId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \"invalidId\""));
+    }
+    // Test Exception Handling in HttpGlobalExceptionHandler
+    @Test
+    public void testGlobalExceptionHandler() throws Exception {
+        // Mock a generic exception in the service
+        when(showtimeService.getShowtimeById(1L)).thenThrow(new RuntimeException("Unexpected error"));
+
+        // Perform the GET request and expect the global exception handler to respond with a 500 error
+        mockMvc.perform(get("/showtimes/{showtimeId}", 1L))
+                .andExpect(status().isInternalServerError()) // Expecting HTTP 500 Internal Server Error
+                .andExpect(jsonPath("$.errorCode").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value("Unexpected error occurred: Unexpected error"));
+
+        // Verify that the service method was called
+        verify(showtimeService, times(1)).getShowtimeById(1L);
+    }
+    // Test POST /showtimes/update/{showtimeId} - Missing Fields (Bad Request)
+    @Test
+    public void testUpdateShowtime_MissingFields() throws Exception {
+        String missingFieldsJson = """
+    {
+        "price": 15.0,
+        "movieId": 2
+    }
+    """;
+
+        // Perform the POST request with missing required fields (e.g., missing 'theater', 'startTime', and 'endTime')
+        mockMvc.perform(post("/showtimes/update/{showtimeId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(missingFieldsJson))
+                .andExpect(status().isBadRequest()) // Expecting HTTP 400 Bad Request
+                .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message", containsString("Theater is required")))
+                .andExpect(jsonPath("$.message", containsString("Start time is required")))
+                .andExpect(jsonPath("$.message", containsString("End time is required")));
+    }
+
+
+
+
+
+
 }

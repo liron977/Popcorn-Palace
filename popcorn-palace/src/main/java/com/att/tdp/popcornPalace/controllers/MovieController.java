@@ -20,15 +20,16 @@ public class MovieController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<Movie>>> getAllMovies() {
+    public ResponseEntity<List<Movie>> getAllMovies() {
         List<Movie> movies = movieService.getAllMovies();
-        ApiResponse<List<Movie>> response = new ApiResponse<>(movies);
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(movies);
     }
 
     @PostMapping
     public ResponseEntity<Movie> addMovie(@Valid @RequestBody Movie movie) {
         Movie addedMovie = movieService.addMovie(movie);
+
         return ResponseEntity.ok(addedMovie);
     }
 
@@ -39,12 +40,12 @@ public class MovieController {
             @Valid @RequestBody Movie movieDetails) {
 
         movieService.updateMovie(movieTitle, movieDetails);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{movieTitle}")
     public ResponseEntity<Void> deleteMovie(@PathVariable String movieTitle) {
         movieService.deleteMovie(movieTitle);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }

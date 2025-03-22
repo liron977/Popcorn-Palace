@@ -28,6 +28,15 @@ public class BookingService {
 
     @Transactional
     public String bookTicket(Long showtimeId, int seatNumber, UUID userId) {
+        if (showtimeId == null) {
+            throw new IllegalArgumentException("Invalid showtime ID.");
+        }
+        if (seatNumber <= 0) {
+            throw new IllegalArgumentException("Invalid seat number.");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("Invalid user ID.");
+        }
         Showtime showtime = showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Showtime", showtimeId.toString()));
 

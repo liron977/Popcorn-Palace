@@ -22,7 +22,8 @@ public class Showtime {
     private Long id;
 
     @Min(value = 0, message = "Price must be non-negative")
-    private double price;
+    @NotNull(message = "Price cannot be null")
+    private Double price;
 
     @NotNull(message = "Movie ID is required")
     @ManyToOne

@@ -88,8 +88,8 @@ public class BookingControllerTest {
                                 "userId": "123e4567-e89b-12d3-a456-426614174000"
                             }
                             """))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.bookingId").exists());  // Expect "bookingId" under "data"
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bookingId").exists());  // Expect "bookingId" under "data"
 
         verify(bookingService, times(1)).bookTicket(eq(1L), eq(1), eq(UUID.fromString("123e4567-e89b-12d3-a456-426614174000")));
     }

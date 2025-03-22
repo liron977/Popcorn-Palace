@@ -31,6 +31,9 @@ public class MovieService {
     final String MOVIE_RESOURCE_NAME = "Movie";
 
     public Movie addMovie(Movie movie) {
+        if (movie == null || movie.getTitle() == null) {
+            throw new IllegalArgumentException("Movie details or title cannot be null.");
+        }
         // Check if the movie with the same title already exists
         if (movieRepository.existsByTitle(movie.getTitle())) {
             throw new DuplicateResourceException(MOVIE_RESOURCE_NAME, movie.getTitle());
@@ -39,6 +42,10 @@ public class MovieService {
     }
 
     public Movie updateMovie(String movieTitle, Movie movieDetails) {
+        if (movieDetails == null || movieDetails.getTitle() == null) {
+            throw new IllegalArgumentException("Movie details or title cannot be null.");
+        }
+
         if (!movieTitle.equals(movieDetails.getTitle()) && movieRepository.existsByTitle(movieDetails.getTitle())) {
             throw new DuplicateResourceException(MOVIE_RESOURCE_NAME, movieDetails.getTitle());
         }
@@ -61,7 +68,7 @@ public class MovieService {
 
         List<Showtime> showtimes = showtimeRepository.findByMovieId(movie.getId());
         if (!showtimes.isEmpty()) {
-            StringBuilder errorMessage = getStringBuilderDeleteError(showtimes);
+            String errorMessage = getStringBuilderDeleteError(showtimes);
 
             throw new DeleteConflictException(errorMessage.toString(), MOVIE_RESOURCE_NAME, movie.getTitle());
         }
@@ -69,15 +76,14 @@ public class MovieService {
         movieRepository.delete(movie);
     }
 
-    private  StringBuilder getStringBuilderDeleteError(List<Showtime> showtimes) {
+    private String getStringBuilderDeleteError(List<Showtime> showtimes) {
         StringBuilder errorMessage = new StringBuilder("Movie has associated showtimes. Please delete the showtimes before deleting the movie. Associated showtimes:\n");
-        for (Showtime showtime : showtimes) {
-            errorMessage.append(String.format("Showtime ID: %d, Theater: %s, Start Time: %s, End Time: %s\n",
-                    showtime.getId(),
-                    showtime.getTheater(),
-                    showtime.getStartTime(),
-                    showtime.getEndTime()));
-        }
-        return errorMessage;
+        showtimes.forEach(showtime ->
+                errorMessage.append(String.format("Showtime ID: %d, Theater: %s, Start Time: %s, End Time: %s\n",
+                        showtime.getId(),
+                        showtime.getTheater(),
+                        showtime.getStartTime(),
+                        showtime.getEndTime())));
+        return errorMessage.toString();
     }
 }

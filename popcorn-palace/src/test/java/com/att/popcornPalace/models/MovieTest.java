@@ -71,7 +71,7 @@ class MovieTest {
                 .title("Inception")
                 .genre("Sci-Fi")
                 .duration(148)
-                .rating(-1)
+                .rating(-1.0)
                 .releaseYear(2010)
                 .build();
 
@@ -93,5 +93,64 @@ class MovieTest {
         Set<ConstraintViolation<Movie>> violations = validator.validate(movie);
         assertThat(violations).isNotEmpty();
         assertThat(violations).anyMatch(v -> v.getMessage().equals("Release year should be greater than or equal to 1900"));
+    }
+    @Test
+    void testInvalidMovie_NullTitle() {
+        Movie movie = Movie.builder()
+                .title(null)
+                .genre("Sci-Fi")
+                .duration(148)
+                .rating(8.8)
+                .releaseYear(2010)
+                .build();
+
+        Set<ConstraintViolation<Movie>> violations = validator.validate(movie);
+        assertThat(violations).isNotEmpty();
+        assertThat(violations).anyMatch(v -> v.getMessage().equals("Title cannot be blank"));
+    }
+
+    @Test
+    void testInvalidMovie_NullGenre() {
+        Movie movie = Movie.builder()
+                .title("Inception")
+                .genre(null)
+                .duration(148)
+                .rating(8.8)
+                .releaseYear(2010)
+                .build();
+
+        Set<ConstraintViolation<Movie>> violations = validator.validate(movie);
+        assertThat(violations).isNotEmpty();
+        assertThat(violations).anyMatch(v -> v.getMessage().equals("Genre cannot be blank"));
+    }
+
+    @Test
+    void testInvalidMovie_InvalidRating_Low() {
+        Movie movie = Movie.builder()
+                .title("Inception")
+                .genre("Sci-Fi")
+                .duration(148)
+                .rating(-1.0)
+                .releaseYear(2010)
+                .build();
+
+        Set<ConstraintViolation<Movie>> violations = validator.validate(movie);
+        assertThat(violations).isNotEmpty();
+        assertThat(violations).anyMatch(v -> v.getMessage().equals("Rating should be between 0 and 10"));
+    }
+
+    @Test
+    void testInvalidMovie_InvalidRating_High() {
+        Movie movie = Movie.builder()
+                .title("Inception")
+                .genre("Sci-Fi")
+                .duration(148)
+                .rating(11.0)
+                .releaseYear(2010)
+                .build();
+
+        Set<ConstraintViolation<Movie>> violations = validator.validate(movie);
+        assertThat(violations).isNotEmpty();
+        assertThat(violations).anyMatch(v -> v.getMessage().equals("Rating should be between 0 and 10"));
     }
 }

@@ -1,8 +1,10 @@
 package com.att.tdp.popcornPalace.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Entity
@@ -22,10 +24,13 @@ public class Movie {
     private String genre;
 
     @Min(value = 1, message = "Duration should be a positive number")
-    private int duration;
+    @NotNull(message = "Duration cannot be null")
+    private Integer duration;
 
     @Min(value = 0, message = "Rating should be between 0 and 10")
-    private double rating;
+    @Max(value = 10, message = "Rating should be between 0 and 10")
+    @NotNull(message = "Rating cannot be null")
+    private Double rating;
 
     @Min(value = 1900, message = "Release year should be greater than or equal to 1900")
     private int releaseYear;

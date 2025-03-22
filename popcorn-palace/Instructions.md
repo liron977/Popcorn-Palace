@@ -47,13 +47,13 @@ The command you provided is used to access a PostgreSQL database running inside 
    ```
 
 
-## Build the project
+## Build and test the project
 
  ```bash
      mvn clean install
  ```
      
-## Testing  the Application
+## Only Testing the Application
 
 1. **Run the tests**:
 
@@ -106,20 +106,4 @@ docker-compose down
 This will:
 - Stop and remove the containers.
 - Remove any networks that were created.
-
----
-
-## Troubleshooting
-
-- **If you're facing issues with Docker**: Ensure that Docker is running correctly and check for any errors in the `docker-compose` logs:
-
-  ```bash
-  docker-compose logs
-  ```
-
-- **Database Connection Issues**: Check that the database container is properly linked to the application container in the `compose.yml` file.
-
-- **Test Failures**: If tests are failing, check the test output for specific error messages, and ensure the application is running correctly before re-running tests.
-
----
 

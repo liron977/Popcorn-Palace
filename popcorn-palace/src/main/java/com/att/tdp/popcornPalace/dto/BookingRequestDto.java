@@ -4,19 +4,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import lombok.*;
 
 import java.util.UUID;
 
@@ -38,7 +33,7 @@ public class BookingRequestDto  {
 
     @Min(value = 1, message = "Seat number must be a positive integer")
     @NotNull(message = "Seat number is required")
-    private int seatNumber;
+    private Integer seatNumber;
 
     @NotNull(message = "User ID is required")
     private UUID userId;

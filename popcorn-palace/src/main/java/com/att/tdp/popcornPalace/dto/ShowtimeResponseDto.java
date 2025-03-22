@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class ShowtimeResponseDto {
     private Long id;
-    private double price;
+    private Double price;
     private Long movieId;  // Use movieId instead of the full movie object
     private String theater;
     private LocalDateTime startTime;
@@ -15,7 +15,7 @@ public class ShowtimeResponseDto {
 
     // Constructors, Getters, and Setters
 
-    public ShowtimeResponseDto(Long id, double price, Long movieId, String theater, LocalDateTime startTime, LocalDateTime endTime) {
+    public ShowtimeResponseDto(Long id, Double price, Long movieId, String theater, LocalDateTime startTime, LocalDateTime endTime) {
         this.id = id;
         this.price = price;
         this.movieId = movieId;

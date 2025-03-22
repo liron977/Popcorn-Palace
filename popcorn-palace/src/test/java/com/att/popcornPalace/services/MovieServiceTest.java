@@ -25,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@Transactional
 public class MovieServiceTest {
 
     @Mock
@@ -40,11 +39,6 @@ public class MovieServiceTest {
     private Movie movie;
     private Movie updatedMovie;
 
-
-    @AfterEach
-    public void cleanup() {
-        movieRepository.deleteAll();
-    }
 
     @BeforeEach
     public void setUp() {
@@ -65,26 +59,6 @@ public class MovieServiceTest {
         verify(movieRepository, times(1)).findAll();
     }
 
-//    @Test
-//    public void testAddMovie_Success() {
-//        // Test if a new movie is added successfully
-//        when(movieRepository.existsByTitle(movie.getTitle())).thenReturn(false);
-//        when(movieRepository.save(movie)).thenReturn(movie);
-//
-//
-//
-//        Movie result = movieService.addMovie(movie);
-//
-//        assertNotNull(result);
-//        assertEquals("Inception", result.getTitle());
-//        verify(movieRepository, times(1)).existsByTitle(movie.getTitle());
-//        verify(movieRepository, times(1)).save(movie);
-//
-//        List<Movie> allMovies = movieRepository.findAll();
-//        System.out.println("All movies in the database:");
-//        allMovies.forEach(System.out::println);
-//    }
-
     @Test
     public void testAddMovie_Success() {
         // Test if a new movie is added successfully
@@ -101,8 +75,7 @@ public class MovieServiceTest {
 
         // Now verify the list of movies after adding one
         List<Movie> allMovies = movieRepository.findAll();
-        System.out.println("All movies in the database:");
-        allMovies.forEach(System.out::println);
+
 
         // Verify that the list contains the added movie
         assertTrue(allMovies.contains(movie));
@@ -137,6 +110,12 @@ public class MovieServiceTest {
         assertEquals(2010, result.getReleaseYear());
         verify(movieRepository, times(1)).findByTitle("Inception");
         verify(movieRepository, times(1)).save(any(Movie.class));
+
+        verify(movieRepository).save(argThat(m ->
+                m.getTitle().equals("Inception") &&
+                        m.getDuration() == 150 &&
+                        m.getRating() == 9.0
+        ));
     }
 
     @Test
@@ -212,4 +191,20 @@ public class MovieServiceTest {
         verify(movieRepository, times(1)).findByTitle("Inception");
         verify(movieRepository, never()).delete(any(Movie.class));  // Ensure delete is not called
     }
+    @Test
+    void getAllMovies_ShouldReturnEmptyList_WhenNoMoviesExist() {
+        when(movieRepository.findAll()).thenReturn(List.of());
+        List<Movie> movies = movieService.getAllMovies();
+        assertTrue(movies.isEmpty());
+    }
+    @Test
+    void getAllMovies_ShouldReturnMoviesList() {
+        when(movieRepository.findAll()).thenReturn(List.of(movie, updatedMovie));
+        List<Movie> movies = movieService.getAllMovies();
+        assertEquals(2, movies.size());
+
+        verify(movieRepository, times(1)).findAll();
+        verifyNoMoreInteractions(movieRepository, showtimeRepository); // Ensure no other calls are made
+    }
+
 }

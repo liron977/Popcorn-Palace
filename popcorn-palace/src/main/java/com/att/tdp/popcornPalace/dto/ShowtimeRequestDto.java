@@ -18,7 +18,8 @@ public class ShowtimeRequestDto {
     private Long movieId;
 
     @Min(value = 0, message = "Price must be non-negative")
-    private double price;
+    @NotNull(message = "Price is required")
+    private Double price;
 
     @NotBlank(message = "Theater is required")
     private String theater;

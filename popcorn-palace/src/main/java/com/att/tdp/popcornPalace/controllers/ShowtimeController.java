@@ -21,21 +21,19 @@ public class ShowtimeController {
 
     // Get Showtime by ID
     @GetMapping("/{showtimeId}")
-    public ResponseEntity<ApiResponse<ShowtimeResponseDto>> getShowtimeById(@PathVariable Long showtimeId) {
+    public ResponseEntity<ShowtimeResponseDto> getShowtimeById(@PathVariable Long showtimeId) {
         Showtime showtime = showtimeService.getShowtimeById(showtimeId);
         ShowtimeResponseDto responseDto = showtimeService.mapToShowtimeResponseDto(showtime);
-        ApiResponse<ShowtimeResponseDto> successResponse = new ApiResponse<>(responseDto);
 
-        return ResponseEntity.ok(successResponse);
+        return ResponseEntity.ok(responseDto);
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ShowtimeResponseDto>> addShowtime(@Valid @RequestBody ShowtimeRequestDto showtime) {
+    public ResponseEntity<ShowtimeResponseDto> addShowtime(@Valid @RequestBody ShowtimeRequestDto showtime) {
         Showtime addedShowtime = showtimeService.addShowtime(showtime);
         ShowtimeResponseDto responseDto = showtimeService.mapToShowtimeResponseDto(addedShowtime);
-        ApiResponse<ShowtimeResponseDto> successResponse = new ApiResponse<>(responseDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(successResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @PostMapping("/update/{showtimeId}")
@@ -53,6 +51,6 @@ public class ShowtimeController {
     public ResponseEntity<Void> deleteShowtime(@PathVariable Long showtimeId) {
         showtimeService.deleteShowtime(showtimeId);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }

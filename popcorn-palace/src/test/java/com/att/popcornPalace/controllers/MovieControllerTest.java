@@ -43,8 +43,6 @@ public class MovieControllerTest {
 
     private Movie movie;
 
-
-
     @BeforeEach
     public void setUp() {
 
@@ -70,13 +68,14 @@ public class MovieControllerTest {
         // Perform the GET request and assert the response
         mockMvc.perform(get("/movies/all"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.size()").value(2))  // Adjusted to access the 'data' field
-                .andExpect(jsonPath("$.data[0].title").value("Inception"))
-                .andExpect(jsonPath("$.data[1].title").value("Interstellar"));
+                .andExpect(jsonPath("$.size()").value(2))
+                .andExpect(jsonPath("$[0].title").value("Inception"))   // Fix: Use indices
+                .andExpect(jsonPath("$[1].title").value("Interstellar"));
 
         // Verify that the service was called
         verify(movieService, times(1)).getAllMovies();
     }
+
 
 
     // Test for adding a new movie
@@ -130,7 +129,7 @@ public class MovieControllerTest {
         mockMvc.perform(post("/movies/update/{movieTitle}", movieTitle)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Inception Updated\", \"genre\":\"Sci-Fi\", \"duration\":150, \"rating\":8.9, \"releaseYear\":2011}"))
-                .andExpect(status().isNoContent()); // Expect 204 No Content status
+                .andExpect(status().isOk()); // Expect 204 No Content status
 
         // Verify that the service was called
         verify(movieService, times(1)).updateMovie(eq(movieTitle), any(Movie.class));
@@ -163,7 +162,7 @@ public class MovieControllerTest {
 
         // Perform the DELETE request and assert the response
         mockMvc.perform(delete("/movies/{movieTitle}", movieTitle))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
         // Verify that the service was called
         verify(movieService, times(1)).deleteMovie(movieTitle);

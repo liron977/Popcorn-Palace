@@ -20,16 +20,15 @@ public class BookingController {
         this.bookingService = bookingService;
     }
     @PostMapping
-    public ResponseEntity<ApiResponse<Map<String, String>>> bookTicket(@Valid @RequestBody BookingRequestDto bookingRequestDto) {
+    public ResponseEntity<Map<String, String>> bookTicket(@Valid @RequestBody BookingRequestDto bookingRequestDto) {
         String bookingId = bookingService.bookTicket(bookingRequestDto.getShowtimeId(),bookingRequestDto.getSeatNumber(),bookingRequestDto.getUserId() );
 
         // Prepare the response
         Map<String, String> response = new HashMap<>();
         response.put("bookingId", bookingId);
 
-        ApiResponse<Map<String, String>> apiResponse = new ApiResponse<>(response);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }

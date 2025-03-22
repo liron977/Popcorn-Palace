@@ -15,7 +15,7 @@ Before running the project, ensure you have the following installed on your loca
 
    ```bash
    git clone https://github.com/liron977/Popcorn-Palace.git
-   cd popcorn-palace
+   cd PopcornPalace/popcorn-palace
    ```
 
 2. **Build and Run the Application using Docker Compose**:
@@ -26,7 +26,6 @@ Before running the project, ensure you have the following installed on your loca
 
    ```bash
      docker-compose up -d
-    docker exec -it popcorn-palace-db-1 psql -U popcorn-palace popcorn-palace
 
    ```
 3. **Check if the containers are running**:

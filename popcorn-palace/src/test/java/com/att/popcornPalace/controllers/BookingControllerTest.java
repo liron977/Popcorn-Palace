@@ -2,8 +2,10 @@ package com.att.popcornPalace.controllers;
 
 import com.att.tdp.popcornPalace.controllers.BookingController;
 import com.att.tdp.popcornPalace.exception.BusinessRuleViolationException;
-import com.att.tdp.popcornPalace.exception.GlobalExceptionHandler;
+import com.att.tdp.popcornPalace.exception.HttpGlobalExceptionHandler;
 import com.att.tdp.popcornPalace.models.Booking;
+import com.att.tdp.popcornPalace.models.Movie;
+import com.att.tdp.popcornPalace.models.Showtime;
 import com.att.tdp.popcornPalace.services.BookingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,7 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @ExtendWith(MockitoExtension.class)
-@Import(GlobalExceptionHandler.class)
+@Import(HttpGlobalExceptionHandler.class)
 @Transactional
 public class BookingControllerTest {
 
@@ -45,11 +49,23 @@ public class BookingControllerTest {
     public void setUp() {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(bookingController)
-                .setControllerAdvice(new GlobalExceptionHandler()) // Handles exceptions
+                .setControllerAdvice(new HttpGlobalExceptionHandler()) // Handles exceptions
+                .build();
+
+        Movie movie = new Movie(1L, "Inception", "Sci-Fi", 150, 8.9, 2011);
+
+
+        Showtime showtime = Showtime.builder()
+                .id(1L)
+                .price(12.5)
+                .theater("IMAX")
+                .startTime(LocalDateTime.now())
+                .endTime(LocalDateTime.now().plusHours(2))
+                .movie(movie) // Set the movie field
                 .build();
 
         Booking booking = Booking.builder()
-                .showtimeId(1L)
+                .showtime(showtime)
                 .seatNumber(1)
                 .userId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
                 .build();
@@ -61,22 +77,24 @@ public class BookingControllerTest {
     @Test
     public void testBookTicket_Success() throws Exception {
         when(bookingService.bookTicket(eq(1L), eq(1), eq(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))))
-                .thenReturn(UUID.randomUUID().toString());
+                .thenReturn(UUID.randomUUID().toString());  // Simulating a generated bookingId
 
         mockMvc.perform(post("/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {
-                                    "showtimeId": 1,
-                                    "seatNumber": 1,
-                                    "userId": "123e4567-e89b-12d3-a456-426614174000"
-                                }
-                                """))
+                            {
+                                "showtimeId": 1,
+                                "seatNumber": 1,
+                                "userId": "123e4567-e89b-12d3-a456-426614174000"
+                            }
+                            """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.bookingId").exists());
+                .andExpect(jsonPath("$.data.bookingId").exists());  // Expect "bookingId" under "data"
 
         verify(bookingService, times(1)).bookTicket(eq(1L), eq(1), eq(UUID.fromString("123e4567-e89b-12d3-a456-426614174000")));
     }
+
+
 
     // Test POST /bookings - Showtime Missing / Invalid
     @Test
@@ -84,12 +102,11 @@ public class BookingControllerTest {
         mockMvc.perform(post("/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-
-                                {
-                                "seatNumber": 1,
-                                "userId": "123e4567-e89b-12d3-a456-426614174000"
-                            }
-                            """))
+                        {
+                            "seatNumber": 1,
+                            "userId": "123e4567-e89b-12d3-a456-426614174000"
+                        }
+                    """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.message", containsString("Showtime ID is required")));
@@ -153,7 +170,7 @@ public class BookingControllerTest {
         // Verify that the bookingService was not called
         verify(bookingService, times(0)).bookTicket(anyLong(), anyInt(), any(UUID.class));
     }
-    // Test POST /bookings - Showtime is in the past
+    //  Test POST /bookings - Showtime is in the past
     @Test
     public void testBookTicket_PastShowtime() throws Exception {
         when(bookingService.bookTicket(anyLong(), anyInt(), any(UUID.class)))
@@ -162,18 +179,19 @@ public class BookingControllerTest {
         mockMvc.perform(post("/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                                "showtimeId": 1,
-                                "seatNumber": 5,
-                                "userId": "123e4567-e89b-12d3-a456-426614174000"
-                            }
-                            """))
-                .andExpect(status().isConflict())
+                        {
+                            "showtimeId": 1,
+                            "seatNumber": 5,
+                            "userId": "123e4567-e89b-12d3-a456-426614174000"
+                        }
+                        """))
+                .andExpect(status().isConflict())  // Expects 400
                 .andExpect(jsonPath("$.errorCode").value("BUSINESS_RULE_VIOLATION"))
                 .andExpect(jsonPath("$.message").value("Cannot book a ticket for a past showtime."));
 
         verify(bookingService, times(1)).bookTicket(anyLong(), anyInt(), any(UUID.class));
     }
+
 
 
 }

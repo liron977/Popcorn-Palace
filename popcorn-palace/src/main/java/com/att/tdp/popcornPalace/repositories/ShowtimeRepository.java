@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
 
@@ -16,11 +17,8 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
             "OR (s.startTime = :startTime AND s.endTime = :endTime))")
     List<Showtime> findOverlappingShowtimes(String theater, LocalDateTime startTime, LocalDateTime endTime);
 
-    @Transactional
-    void deleteByMovieId(Long movieId);
-
-    boolean existsByMovieId(Long movieId);
-
     List<Showtime> findByMovieId(Long movieId);
+
+    Optional<Showtime> findById(Long id);
 
 }

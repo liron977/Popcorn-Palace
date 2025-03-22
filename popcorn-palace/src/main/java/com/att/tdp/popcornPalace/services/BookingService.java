@@ -37,15 +37,15 @@ public class BookingService {
         }
 
         if (bookingRepository.existsByShowtimeIdAndSeatNumber(showtimeId, seatNumber)) {
-            // ToDo: consider adding a class per error, as BusinessRuleViolationException can be the parent exception
             throw new BusinessRuleViolationException("Seat " + seatNumber + " is already booked for this showtime");
         }
 
         Booking booking = Booking.builder()
-                .showtimeId(showtimeId)
+                .showtime(showtime)
                 .seatNumber(seatNumber)
                 .userId(userId)
                 .build();
+
         bookingRepository.save(booking);
 
         return booking.getBookingId().toString();

@@ -180,5 +180,13 @@ public class ShowtimeService {
                 showtime.getEndTime()
         );
     }
+    public Showtime findById(Long id) {
+        Optional<Showtime> showtime = showtimeRepository.findById(id);
+        if (showtime.isPresent()) {
+            return showtime.get();
+        } else {
+            return null;  // Or you could throw an exception if you want to handle not finding a showtime
+        }
+    }
 
 }

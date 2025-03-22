@@ -19,16 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import com.att.tdp.popcornPalace.exception.DuplicateResourceException;
 import com.att.tdp.popcornPalace.exception.ResourceNotFoundException;
-import com.att.tdp.popcornPalace.models.Movie;
-import com.att.tdp.popcornPalace.repositories.MovieRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -195,7 +187,7 @@ public class MovieServiceTest {
         when(showtimeRepository.findByMovieId(movie.getId())).thenReturn(List.of(showtime1, showtime2)); // Return the associated showtimes
 
         // Call the method under test and assert that the exception is thrown
-        ConflictException exception = assertThrows(ConflictException.class, () -> movieService.deleteMovie("Inception"));
+        DeleteConflictException exception = assertThrows(DeleteConflictException.class, () -> movieService.deleteMovie("Inception"));
 
         // Verify the error message contains the expected showtimes details
         String expectedMessage = "Movie has associated showtimes. Please delete the showtimes before deleting the movie. Associated showtimes:\n" +

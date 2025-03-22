@@ -1,6 +1,6 @@
 package com.att.tdp.popcornPalace.services;
 
-import com.att.tdp.popcornPalace.exception.ConflictException;
+import com.att.tdp.popcornPalace.exception.DeleteConflictException;
 import com.att.tdp.popcornPalace.exception.DuplicateResourceException;
 import com.att.tdp.popcornPalace.exception.ResourceNotFoundException;
 import com.att.tdp.popcornPalace.models.Movie;
@@ -61,21 +61,23 @@ public class MovieService {
 
         List<Showtime> showtimes = showtimeRepository.findByMovieId(movie.getId());
         if (!showtimes.isEmpty()) {
-            // Build the error message with details of the associated showtimes
-            StringBuilder errorMessage = new StringBuilder("Movie has associated showtimes. Please delete the showtimes before deleting the movie. Associated showtimes:\n");
-            for (Showtime showtime : showtimes) {
-                errorMessage.append(String.format("Showtime ID: %d, Theater: %s, Start Time: %s, End Time: %s\n",
-                        showtime.getId(),
-                        showtime.getTheater(),
-                        showtime.getStartTime(),
-                        showtime.getEndTime()));
-            }
+            StringBuilder errorMessage = getStringBuilderDeleteError(showtimes);
 
-            // Throw ConflictException with detailed message
-            throw new ConflictException(errorMessage.toString(), MOVIE_RESOURCE_NAME, movie.getTitle());
+            throw new DeleteConflictException(errorMessage.toString(), MOVIE_RESOURCE_NAME, movie.getTitle());
         }
 
-        //showtimeRepository.deleteByMovieId(movie.getId());
         movieRepository.delete(movie);
+    }
+
+    private  StringBuilder getStringBuilderDeleteError(List<Showtime> showtimes) {
+        StringBuilder errorMessage = new StringBuilder("Movie has associated showtimes. Please delete the showtimes before deleting the movie. Associated showtimes:\n");
+        for (Showtime showtime : showtimes) {
+            errorMessage.append(String.format("Showtime ID: %d, Theater: %s, Start Time: %s, End Time: %s\n",
+                    showtime.getId(),
+                    showtime.getTheater(),
+                    showtime.getStartTime(),
+                    showtime.getEndTime()));
+        }
+        return errorMessage;
     }
 }

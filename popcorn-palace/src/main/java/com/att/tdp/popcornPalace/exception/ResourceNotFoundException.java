@@ -6,8 +6,7 @@ public class ResourceNotFoundException extends BaseApplicationException {
     public ResourceNotFoundException(String resourceType, String identifier) {
         super(
                 String.format("%s with identifier %s not found", resourceType, identifier),
-                "RESOURCE_NOT_FOUND",
-                HttpStatus.NOT_FOUND
+                "RESOURCE_NOT_FOUND"
         );
     }
 }

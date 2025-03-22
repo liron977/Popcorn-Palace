@@ -12,7 +12,6 @@ import java.util.List;
 @RequestMapping("/movies")
 public class MovieController {
 
-    // ToDo: change it all ResponseEntity and response wrapper
 
     private final MovieService movieService;
 
@@ -20,10 +19,11 @@ public class MovieController {
         this.movieService = movieService;
     }
 
-    // ToDo: in your notes - write that from what you know REST shouldn't have it
     @GetMapping("/all")
-    public List<Movie> getAllMovies() {
-        return movieService.getAllMovies();
+    public ResponseEntity<ApiResponse<List<Movie>>> getAllMovies() {
+        List<Movie> movies = movieService.getAllMovies();
+        ApiResponse<List<Movie>> response = new ApiResponse<>(movies);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
@@ -32,13 +32,13 @@ public class MovieController {
         return ResponseEntity.ok(addedMovie);
     }
 
+    //Delete operation should used PUT instead of POST , but I followed the api structure in the readme file
     @PostMapping("/update/{movieTitle}")
     public ResponseEntity<Movie> updateMovie(
             @PathVariable String movieTitle,
             @Valid @RequestBody Movie movieDetails) {
 
         movieService.updateMovie(movieTitle, movieDetails);
-
         return ResponseEntity.noContent().build();
     }
 

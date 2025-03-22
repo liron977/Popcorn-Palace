@@ -6,15 +6,16 @@ import java.time.LocalDateTime;
 
 @Getter
 public class ExceptionResponse {
-    // Getters
     private final String errorCode;
     private final String message;
+    private final String path;
     private final LocalDateTime timestamp;
 
-    public ExceptionResponse(String errorCode, String message, LocalDateTime timestamp) {
+    public ExceptionResponse(String errorCode, String message, String path) {
         this.errorCode = errorCode;
         this.message = message;
-        this.timestamp = timestamp;
+        this.path = path;
+        this.timestamp = LocalDateTime.now();
     }
 
 }

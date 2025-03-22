@@ -22,7 +22,6 @@ public class Showtime {
     private Long id;
 
     @Min(value = 0, message = "Price must be non-negative")
-    // ToDo: why not float?
     private double price;
 
     @NotNull(message = "Movie ID is required")

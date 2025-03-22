@@ -3,7 +3,7 @@ package com.att.popcornPalace.controllers;
 import com.att.tdp.popcornPalace.controllers.ShowtimeController;
 import com.att.tdp.popcornPalace.dto.ShowtimeRequestDto;
 import com.att.tdp.popcornPalace.dto.ShowtimeResponseDto;
-import com.att.tdp.popcornPalace.exception.GlobalExceptionHandler;
+import com.att.tdp.popcornPalace.exception.HttpGlobalExceptionHandler;
 import com.att.tdp.popcornPalace.exception.ResourceNotFoundException;
 import com.att.tdp.popcornPalace.models.Movie;
 import com.att.tdp.popcornPalace.models.Showtime;
@@ -17,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import static org.hamcrest.Matchers.containsString;
@@ -31,7 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
-@Import(GlobalExceptionHandler.class)
+@Import(HttpGlobalExceptionHandler.class)
 @Transactional
 public class ShowtimeControllerTest {
 
@@ -49,7 +48,7 @@ public class ShowtimeControllerTest {
     public void setUp() {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(showtimeController)
-                .setControllerAdvice(new GlobalExceptionHandler()) // Handles exceptions
+                .setControllerAdvice(new HttpGlobalExceptionHandler()) // Handles exceptions
                 .build();
 
         Movie movie = new Movie(1L, "Sample Movie", "Action", 120, 8.5, 2025);
@@ -92,15 +91,14 @@ public class ShowtimeControllerTest {
         // Perform the GET request and assert the response
         mockMvc.perform(get("/showtimes/{showtimeId}", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.price").value(12.5))
-                .andExpect(jsonPath("$.theater").value("IMAX"));
+                .andExpect(jsonPath("$.data.id").value(1L)) // Adjusted path to account for 'data'
+                .andExpect(jsonPath("$.data.price").value(12.5))
+                .andExpect(jsonPath("$.data.theater").value("IMAX"));
 
         // Verify that the service methods were called
         verify(showtimeService, times(1)).getShowtimeById(1L);
         verify(showtimeService, times(1)).mapToShowtimeResponseDto(showtime);
     }
-
 
 
 
@@ -130,20 +128,21 @@ public class ShowtimeControllerTest {
         mockMvc.perform(post("/showtimes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                                "price": 12.5,
-                                "movieId": 1,
-                                "theater": "IMAX",
-                                "startTime": "2025-03-22T19:00:00",
-                                "endTime": "2025-03-22T21:00:00"
-                            }
-                            """))
+                        {
+                            "price": 12.5,
+                            "movieId": 1,
+                            "theater": "IMAX",
+                            "startTime": "2025-03-22T19:00:00",
+                            "endTime": "2025-03-22T21:00:00"
+                        }
+                        """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1L))  // Expecting the ID in the response
-                .andExpect(jsonPath("$.price").value(12.5));
+                .andExpect(jsonPath("$.data.id").value(1L))  // Adjusted path to $.data.id
+                .andExpect(jsonPath("$.data.price").value(12.5));
 
         verify(showtimeService, times(1)).addShowtime(any(ShowtimeRequestDto.class));
     }
+
 
 
     // Test POST /showtimes (Validation Failure)

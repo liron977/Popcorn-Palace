@@ -3,6 +3,7 @@ package com.att.tdp.popcornPalace.exception;
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -11,34 +12,35 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 
 @ControllerAdvice
-public class GlobalExceptionHandler { // ToDo: rename to http response handler
+public class HttpGlobalExceptionHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(HttpGlobalExceptionHandler.class);
 
     // see if you can make it handel only for http response and not other
-    @ExceptionHandler({BaseApplicationException.class,DuplicateResourceException.class,BusinessRuleViolationException.class,ResourceNotFoundException.class,ConflictException.class})
-    public ResponseEntity<ExceptionResponse> handleBaseApplicationException(BaseApplicationException ex) {
+    @ExceptionHandler(BaseApplicationException.class)
+    public ResponseEntity<ExceptionResponse> handleBaseApplicationException(BaseApplicationException ex,HttpServletRequest request) {
         logger.error("Application exception occurred: {}", ex.getMessage(), ex);
+
+        HttpStatus status = mapExceptionToHttpStatus(ex);
 
         ExceptionResponse errorResponse = new ExceptionResponse(
                 ex.getErrorCode(),
                 ex.getMessage(),
-                LocalDateTime.now()
+                request.getRequestURI()
         );
 
-        return new ResponseEntity<>(errorResponse, ex.getHttpStatus());
+        return new ResponseEntity<>(errorResponse, status);
     }
 
 
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ExceptionResponse> handleGenericException(Exception ex) {
+    public ResponseEntity<ExceptionResponse> handleGenericException(Exception ex,HttpServletRequest request) {
         String errorMessage = "Unexpected error occurred: " + ex.getMessage();
 
         logger.error(errorMessage, ex);
@@ -46,26 +48,26 @@ public class GlobalExceptionHandler { // ToDo: rename to http response handler
         ExceptionResponse errorResponse = new ExceptionResponse(
                 "INTERNAL_SERVER_ERROR",
                 errorMessage,
-                LocalDateTime.now()
+                request.getRequestURI()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ExceptionResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+    public ResponseEntity<ExceptionResponse> handleIllegalArgumentException(IllegalArgumentException ex,HttpServletRequest request) {
         logger.error("Illegal argument exception occurred: {}", ex.getMessage(), ex);
 
         ExceptionResponse errorResponse = new ExceptionResponse(
                 "INVALID_INPUT",
                 ex.getMessage(),
-                LocalDateTime.now()
+                request.getRequestURI()
         );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ExceptionResponse> handleJsonParseError(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ExceptionResponse> handleJsonParseError(HttpMessageNotReadableException ex,HttpServletRequest request) {
         logger.error("JSON parse error occurred: {}", ex.getMessage(), ex);
 
         // Get the root cause and extract useful information
@@ -95,7 +97,7 @@ public class GlobalExceptionHandler { // ToDo: rename to http response handler
         ExceptionResponse errorResponse = new ExceptionResponse(
                 "INVALID_JSON_FORMAT",
                 errorMessage,
-                LocalDateTime.now()
+                request.getRequestURI()
         );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -117,7 +119,7 @@ public class GlobalExceptionHandler { // ToDo: rename to http response handler
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ExceptionResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ExceptionResponse> handleValidationExceptions(MethodArgumentNotValidException ex,HttpServletRequest request) {
         logger.error("Validation exception occurred: {}", ex.getMessage());
 
         // Extract the field errors and create a clean error message
@@ -135,10 +137,19 @@ public class GlobalExceptionHandler { // ToDo: rename to http response handler
         ExceptionResponse errorResponse = new ExceptionResponse(
                 "VALIDATION_ERROR",
                 message.toString(),
-                LocalDateTime.now()
+                request.getRequestURI()
         );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    private HttpStatus mapExceptionToHttpStatus(BaseApplicationException ex) {
+        return switch (ex.getClass().getSimpleName()) {
+            case "BusinessRuleViolationException" -> HttpStatus.CONFLICT;
+            case "DeleteConflictException" -> HttpStatus.CONFLICT;
+            case "ResourceNotFoundException" -> HttpStatus.NOT_FOUND;
+            case "DuplicateResourceException" -> HttpStatus.CONFLICT;
+            default -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
+    }
 }

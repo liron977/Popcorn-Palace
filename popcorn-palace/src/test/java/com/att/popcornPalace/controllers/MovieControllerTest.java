@@ -3,7 +3,7 @@ package com.att.popcornPalace.controllers;
 
 import com.att.tdp.popcornPalace.controllers.MovieController;
 import com.att.tdp.popcornPalace.exception.DuplicateResourceException;
-import com.att.tdp.popcornPalace.exception.GlobalExceptionHandler;
+import com.att.tdp.popcornPalace.exception.HttpGlobalExceptionHandler;
 import com.att.tdp.popcornPalace.exception.ResourceNotFoundException;
 import com.att.tdp.popcornPalace.models.Movie;
 import com.att.tdp.popcornPalace.services.MovieService;
@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
-@Import(GlobalExceptionHandler.class)
+@Import(HttpGlobalExceptionHandler.class)
 @Transactional
 public class MovieControllerTest {
 
@@ -50,7 +50,7 @@ public class MovieControllerTest {
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(movieController)
-                .setControllerAdvice(new GlobalExceptionHandler())  // Add this line
+                .setControllerAdvice(new HttpGlobalExceptionHandler())  // Add this line
                 .build();
         // Create a test movie
         movie = new Movie(null, "Inception", "Sci-Fi", 148, 8.8, 2010);
@@ -70,13 +70,14 @@ public class MovieControllerTest {
         // Perform the GET request and assert the response
         mockMvc.perform(get("/movies/all"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(2))
-                .andExpect(jsonPath("$[0].title").value("Inception"))
-                .andExpect(jsonPath("$[1].title").value("Interstellar"));
+                .andExpect(jsonPath("$.data.size()").value(2))  // Adjusted to access the 'data' field
+                .andExpect(jsonPath("$.data[0].title").value("Inception"))
+                .andExpect(jsonPath("$.data[1].title").value("Interstellar"));
 
         // Verify that the service was called
         verify(movieService, times(1)).getAllMovies();
     }
+
 
     // Test for adding a new movie
     @Test

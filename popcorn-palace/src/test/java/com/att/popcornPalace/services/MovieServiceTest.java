@@ -191,6 +191,21 @@ public class MovieServiceTest {
         verify(movieRepository, times(1)).findByTitle("Inception");
         verify(movieRepository, never()).delete(any(Movie.class));  // Ensure delete is not called
     }
+
+    @Test
+    public void testDeleteMovie_Success() {
+        // Arrange: Mock finding the movie
+        Movie movie = new Movie(1L, "Inception4", "Sci-Fi", 148, 8.8, 2010);
+        when(movieRepository.findByTitle("Inception4")).thenReturn(Optional.of(movie));
+
+        // Act: Call the service to delete the movie
+        movieService.deleteMovie("Inception4");
+
+        // Assert: Verify the interactions
+        verify(movieRepository, times(1)).findByTitle("Inception4");
+        verify(movieRepository, times(1)).delete(movie);
+    }
+
     @Test
     void getAllMovies_ShouldReturnEmptyList_WhenNoMoviesExist() {
         when(movieRepository.findAll()).thenReturn(List.of());

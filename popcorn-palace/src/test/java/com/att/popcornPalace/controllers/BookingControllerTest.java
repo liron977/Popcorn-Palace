@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
 @Import(HttpGlobalExceptionHandler.class)
-@Transactional
 public class BookingControllerTest {
 
     private MockMvc mockMvc;

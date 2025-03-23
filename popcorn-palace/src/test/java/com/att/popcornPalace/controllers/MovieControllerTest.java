@@ -30,7 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 @Import(HttpGlobalExceptionHandler.class)
-@Transactional
 public class MovieControllerTest {
 
     private MockMvc mockMvc;

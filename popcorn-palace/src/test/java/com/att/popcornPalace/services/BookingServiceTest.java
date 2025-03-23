@@ -22,7 +22,6 @@ import com.att.tdp.popcornPalace.services.BookingService;
 import org.springframework.boot.test.context.SpringBootTest;
 import java.util.UUID;
 
-@Transactional
 @SpringBootTest(classes = PopcornPalaceApplication.class)
 class BookingServiceTest {
 

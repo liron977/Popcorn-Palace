@@ -25,11 +25,6 @@ public class MovieRepositoryTest {
     @Autowired
     private MovieRepository movieRepository;
 
-    @AfterEach
-    public void cleanup() {
-        movieRepository.deleteAll();
-    }
-
     @Test
     public void testMovieRepository() {
         // Create and save a movie
